@@ -2,7 +2,7 @@ import { Transform } from "class-transformer";
 import { IsBoolean, IsDateString, IsNotEmpty, IsString, MinLength } from "class-validator";
 
 
-export class crearUsuarioDto {
+export class registerDto {
     @IsNotEmpty()
     @IsString()
     nombreCompleto: string;

@@ -19,14 +19,34 @@ export class UsuarioService {
         return this.prisma.usuario.findMany()
     }
 
-    async getUsuarioPorId(usuarioId: number){
-        const usuarioEcontrado = this.prisma.usuario.findUnique({where: {usuarioId}});
+    async getUsuarioByDni(dni: string) {
+        const usuarioEncontrado = this.prisma.usuario.findFirst({where: {dni, disponible: true}})
 
-        if (!usuarioEcontrado){
+        return usuarioEncontrado
+    }
+
+    async getUsuarioPorId(usuarioId: number){
+        const usuarioEncontrado = await this.prisma.usuario.findFirst({
+            where: { usuarioId: usuarioId, disponible: true },
+            include: {
+              facturas: {
+                where: { disponible: true },
+                include: {
+                  detallesFactura: {
+                    include: {
+                      producto: true,
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+        if (!usuarioEncontrado){
             return new NotFoundException(`Usuario con id ${usuarioId} no encontrado`)
         }
 
-        return usuarioEcontrado
+        return usuarioEncontrado
     }
 
     async crearUsuario(usuario: crearUsuarioDto){
@@ -42,5 +62,10 @@ export class UsuarioService {
             return this.prisma.usuario.update({
                 where: {usuarioId},
                 data:{ disponible: false,}});
+    }
+    async restaurarUsuario(usuarioId: number){
+        return this.prisma.usuario.update({
+            where: {usuarioId},
+            data:{ disponible: true,}});
     }
 }

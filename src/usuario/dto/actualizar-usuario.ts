@@ -1,8 +1,21 @@
+import { Transform } from "class-transformer";
+import { IsDateString, IsNotEmpty, IsString, MinLength } from "class-validator";
+
 export class actualizarUsuarioDto {
+    @IsNotEmpty()
+    @IsString()
     nombreCompleto?: string;
+    @IsString()
+    @Transform(({ value })=> value.trim())
+    @MinLength(6)
+    contraseña?: string;
+    @IsString()
+    @IsNotEmpty()
     dni?: string;
+    @IsString()
     sexo?: string;
-    disponible?: boolean;
+    @IsString()
     estadoCivil?: string;
-    fechaNacimiento?: Date;
+    @IsDateString()
+    fechaNacimiento?: string;
 }

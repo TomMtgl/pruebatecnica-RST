@@ -17,19 +17,19 @@ model Usuario {
   usuarioId       Int  @default(autoincrement()) @id
   nombreCompleto  String  
   dni             String
+  contraseña      String
   sexo            String
   disponible      Boolean @default(true)
   estadoCivil     String
   fechaNacimiento DateTime
   facturas Factura[]
-  @@map("usuario")
 }
 model Factura{
   facturaId Int @default(autoincrement()) @id
-  disponible Boolean
-  fecha DateTime
+  disponible Boolean @default(true)
+  fecha DateTime @default(now())
   total Float
-  nombreFantasia String
+  nombreFantasia String 
   fechaFundacion String
   usuario Usuario @relation(fields: [usID], references: [usuarioId])
   usID Int
@@ -37,19 +37,19 @@ model Factura{
 }
 model DetalleFactura {
   detalleFactruaId Int @default(autoincrement()) @id
-  disponible Boolean
+  disponible Boolean @default(true)
   subtotal Float
   cantidad Int
-  factura Factura @relation(fields: [factID], references: [facturaId])
+  factura Factura @relation(fields: [facturaID], references: [facturaId])
   factID Int
-  producto Producto @relation(fields: [prodId], references: [ID])
+  producto Producto @relation(fields: [prodId], references: [productoId])
   prodId Int
 }
 model Producto {
-  ID Int @default(autoincrement()) @id
-  disponible Boolean
+  productoId Int @default(autoincrement()) @id
+  disponible Boolean @default(true)
   nombre String
-  PrecioUnitario Float
+  precioUnitario Float
   descripcion String
   stock Int
   detallesFacturas   DetalleFactura[]
