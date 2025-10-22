@@ -102,7 +102,7 @@ Representa los productos disponibles para la venta en el sistema.
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/TomMtgl/pruebatecnica.git
+git clone https://github.com/TomMtgl/pruebatecnica-RST.git
 cd pruebatecnica
 ```
 
@@ -115,7 +115,7 @@ npm install
 Crea un archivo `.env` en la raíz del proyecto con el siguiente contenido:
 
 ```env
-DATABASE_URL="postgresql://<usuario>:<password>@<host>/<nombreBD>?sslmode=require"
+DATABASE_URL="postgresql://neondb_owner:npg_u4IUYSJc1kCe@ep-crimson-thunder-acjz68co-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 JWT_SECRET="palabrasecreta"
 PORT=3000
 ```
