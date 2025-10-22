@@ -238,4 +238,67 @@ Para usar endpoints protegidos:
 - `DELETE /factura/:id` → Borrado lógico de la factura.  
 - `PATCH /factura/:id` → Restaurar factura dada de baja.  
 
+### Endpoint para crear productos
+**URL:**  
+```
+POST http://localhost:3000/producto
+```
+**Body:**
+```json
+{
+  "nombre": "Auriculares Redragon",
+  "descripcion": "Auriculares inalambricos con microfono",
+  "precioUnitario": 2500,
+  "stock": 15
+}
+```
+```json
+{
+  "nombre": "Mouse Razer",
+  "descripcion": "Mouse gamer con sensor optico",
+  "precioUnitario": 4000,
+  "stock": 20
+}
+```
+```json
+{
+  "nombre": "Monitor Zowie",
+  "descripcion": "Montior de 144hz",
+  "precioUnitario": 10000,
+  "stock": 10
+}
+```
+```json
+{
+  "nombre": "PC completa",
+  "descripcion": "PC lista para usar",
+  "precioUnitario": 40000,
+  "stock": 5
+}
+```
+### Endpoint para crear facturas
+**URL:**  
+```
+POST http://localhost:3000/factura
+```
+**Body:**
+```json
+{
+  "usuarioId": 1,
+  "detalles": [
+    {
+      "productoId": 1,
+      "cantidad": 3
+    },
+    {
+      "productoId": 2,
+      "cantidad": 2
+    },
+    {
+      "productoId": 4,
+      "cantidad": 1
+    }
+  ]
+}
+```
 
