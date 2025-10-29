@@ -5,6 +5,7 @@ import { ProductoService } from 'src/producto/producto.service';
 import { CrearFacturaDto } from './dto/crear-factura.dto';
 import { DetalleFactura, Producto, Factura, Usuario } from '../../generated/prisma/index';
 import { CrearProductoDto } from 'src/producto/dto/crear-producto.dto';
+import { ActualizarDetalleFacturaDto } from 'src/detalle-factura/dto/actualizar-detalle-factura.dto';
 
 @Injectable()
 export class FacturaService {
@@ -257,7 +258,42 @@ export class FacturaService {
     }
   }
   async eliminarFactura(facturaId: number) {
-    return await this.prisma.factura.delete({ where: { facturaId } })
+    const factura = await this.prisma.factura.findUnique({
+      where: { facturaId },
+      include: {
+        detallesFactura: true,
+      },
+    });
+  
+    if (!factura) {
+      throw new NotFoundException(`Factura con ID ${facturaId} no encontrada`);
+    }
+  
+    try {
+      return await this.prisma.$transaction(async (prisma) => {
+        for (const detalle of factura.detallesFactura) {
+          await prisma.producto.update({
+            where: { productoId: detalle.prodId },
+            data: {
+              stock: {
+                increment: detalle.cantidad,
+              },
+            },
+          });
+        }
+  
+        await prisma.detalleFactura.deleteMany({
+          where: { factID: facturaId },
+        });
+  
+        return prisma.factura.delete({
+          where: { facturaId },
+        });
+      });
+    } catch (error) {
+      console.error('Error al eliminar factura:', error);
+      throw new BadRequestException('Error al eliminar la factura');
+    }
   }
   async bajaLogicaFactura(facturaId: number) {
     return this.prisma.factura.update({
@@ -271,4 +307,105 @@ export class FacturaService {
       data: { disponible: true, }
     });
   }
-}
+  async actualizarDetalleFactura(facturaId: number, detalleFacturaId: number, nuevaCantidad: number, ){
+      const detalleActual = await this.prisma.detalleFactura.findFirst({where: {  detalleFacturaId, factID: facturaId }, include: {producto: true, factura: true}})
+
+      if (!detalleActual) {
+        throw new NotFoundException(
+          `Detalle de factura con ID ${detalleFacturaId} no encontrado`,
+        );
+      }
+
+      const diferenciaCantidad = nuevaCantidad - detalleActual.cantidad;
+
+      if (diferenciaCantidad > 0) {
+        if (detalleActual.producto.stock < diferenciaCantidad) {
+          throw new BadRequestException(
+            `Stock insuficiente para ${detalleActual.producto.nombre}. ` +
+            `Disponible: ${detalleActual.producto.stock}, ` +
+            `Necesario: ${diferenciaCantidad}`,
+          );
+        }
+      }
+
+      try {
+        return await this.prisma.$transaction(async (prisma) => {
+          const nuevoSubtotal = nuevaCantidad * detalleActual.producto.precioUnitario;
+    
+          const detalleActualizado = await prisma.detalleFactura.update({
+            where: { detalleFacturaId },
+            data: {
+              cantidad: nuevaCantidad,
+              subtotal: nuevoSubtotal,
+            },
+            include: {
+              producto: {
+                select: {
+                  productoId: true,
+                  nombre: true,
+                  precioUnitario: true,
+                },
+              },
+            },
+          });
+    
+          if (diferenciaCantidad > 0) {
+            await prisma.producto.update({
+              where: { productoId: detalleActual.prodId },  
+              data: {
+                stock: { decrement: diferenciaCantidad },
+              },
+            });
+          } else if (diferenciaCantidad < 0) {
+            await prisma.producto.update({
+              where: { productoId: detalleActual.prodId },  
+              data: {
+                stock: { increment: Math.abs(diferenciaCantidad) },
+              },
+            });
+          }
+    
+          const todosLosDetalles = await prisma.detalleFactura.findMany({
+            where: { factID: facturaId }, 
+          });
+    
+          const nuevoTotal = todosLosDetalles.reduce((sum, detalle) => {
+            return sum + detalle.subtotal;
+          }, 0);
+    
+          await prisma.factura.update({
+            where: { facturaId },
+            data: { total: nuevoTotal },
+          });
+    
+          return prisma.factura.findUnique({
+            where: { facturaId },
+            include: {
+              usuario: {
+                select: {
+                  usuarioId: true,
+                  nombreCompleto: true,
+                },
+              },
+              detallesFactura: {
+                include: {
+                  producto: {
+                    select: {
+                      productoId: true,
+                      nombre: true,
+                      descripcion: true,
+                      precioUnitario: true,
+                    },
+                  },
+                },
+              },
+            },
+          });
+        });
+      } catch (error) {
+        console.error('Error al actualizar detalle de factura:', error);
+        throw new BadRequestException('Error al actualizar el detalle de factura');
+      }
+    }
+  }
+
