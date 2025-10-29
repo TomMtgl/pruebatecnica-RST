@@ -228,7 +228,7 @@ export class FacturaService {
               include: {
                 producto: {
                   select: {
-                    detallesFacturas: true,
+                    productoId: true,
                     nombre: true,
                     descripcion: true,
                     precioUnitario: true,
