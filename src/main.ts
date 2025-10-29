@@ -11,7 +11,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
   .setTitle('RST')
   .setDescription('Prueba técnica')
-  .setVersion('1.0')
+  .setVersion('2.0')
   .addBearerAuth()
   .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
