@@ -107,7 +107,7 @@ export class FacturaService {
     return await this.prisma.factura.findMany()
   }
   async getFacturaById(facturaId: number) {
-    const facturaEncontrada = await this.prisma.factura.findUnique({ where: { facturaId } });
+    const facturaEncontrada = await this.prisma.factura.findUnique({ where: { facturaId }, include: { detallesFactura: {where: {disponible: true}, include: {producto: true}}} });
     if (!facturaEncontrada) {
       throw new NotFoundException('No se encontro la factura')
     }
